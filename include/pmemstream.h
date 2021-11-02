@@ -1,13 +1,12 @@
  /* SPDX-License-Identifier: BSD-3-Clause */
  /* Copyright 2020-2021, Intel Corporation */
 
- //@file pmemstream.h
+ /// @file
 
  #ifndef PMEMSTREAM_H
  #define PMEMSTREAM_H
 
-/** Stream structure
- * */
+/** Stream structure */
  struct pmemstream{
      /** Buffer */
      char *buf;
@@ -16,57 +15,63 @@
      size_t size;
  };
 
- int pmemstream_from_map(&stream, size_t size, map);
 
  /** Pmemstream transaction */
- struct pmemstream_tx;
+ struct pmemstream_tx{
+ };
 
-/* Create new transaction
+/** Create new transaction
+ *
  * @param[out] tx new transaction
  * @param[in] stream stream
  *
  * @relates pmemstream_tx
  * */
- pmemstream_tx_new(&tx, stream);
+int  pmemstream_tx_new(&tx, stream);
 
- /* Stream region */
- struct pmemstream_region;
+ /** Stream region */
+ struct pmemstream_region{
+ };
 
- pmemstream_tx_region_allocate(tx, stream, 4096, &new_region);
+
+ int pmemstream_from_map(&stream, size_t size, map);
+
+ int  pmemstream_tx_region_allocate(pmemstream_tx *tx, *stream, size_t size,pmemstream_region *new_region);
 
  struct pmemstream_region_context *rcontext;
- pmemstream_region_context_new(&rcontext, stream, new_region);
+
+ int  pmemstream_region_context_new(&rcontext, stream, new_region);
 
  struct pmemstream_entry new_entry;
 
-/* Append data to stream inside a transaction.
+/** Append data to stream inside a transaction.
  *
- *    @param [in] tx transaction
- *    @param [in] contexti some context
- *    @param [in] e entry
- *    @param [in] size size of entry
- *    @param [out] new_entry new entr
+ * @param [in] tx transaction
+ * @param [in] rcontext region context
+ * @param [in] e entry
+ * @param [in] size size of entry
+ * @param [out] new_entry new entr
  *
- *    @ return status
- *    @relates pmemstream
+ * @relates pmemstream
+ * @return status
  * */
- int pmemstream_tx_append(tx, rcontext, &e, size_t size , &new_entry);
+ int pmemstream_tx_append(pmemstream_tx tx, pmemstream_region rcontext, &e, size_t size , &new_entry);
 
  int pmemstream_tx_reserve(tx, rcontext, sizeof(e), &new_entry);
 
  int pmemstream_tx_commit(&tx);
 
-/* Append one entry transactionally.
+/** Append one entry transactionally.
  *
- *    @param [in] contexti some context
- *    @param [in] e entry
- *    @param [in] size size of entry
- *    @param [out] new_entry new entr
+ * @param [in] context some context
+ * @param [in] e entry
+ * @param [in] size size of entry
+ * @param [out] new_entry new entr
  *
- *    @ return status
- *    @relates pmemstream
+ * @relates pmemstream
+ * @return status
  * */
- pmemstream_append(rcontext, &e, sizeof(e), &new_entry);
+ pmemstream_append(rcontext, &e, size_t size, &new_entry);
 
  struct data_entry *new_data_entry = pmemstream_entry_data(stream, new_entry);
  printf("new_data_entry: %lu\n", new_data_entry->data);
@@ -77,6 +82,10 @@
 
  struct pmemstream_region region;
 
+ /** Delete existing stream
+  *
+  * @relates pmemstream
+  * */
  pmemstream_delete(&stream);
 
  #endif /* PMEMSTREAM_H */
