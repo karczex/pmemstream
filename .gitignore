@@ -1,0 +1,9 @@
+.*
+!.clang-format
+!.gitattributes
+!.gitignore
+!.github/
+build/
+*~
+*.swp
+~*
