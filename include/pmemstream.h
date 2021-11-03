@@ -6,7 +6,10 @@
  #ifndef PMEMSTREAM_H
  #define PMEMSTREAM_H
 
-/** Stream structure */
+/** Stream structure
+ *
+ * @see pmem.io
+ * */
  struct pmemstream{
      /** Buffer */
      char *buf;
