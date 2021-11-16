@@ -13,3 +13,10 @@ MAINTAINER igor.chorazewicz@intel.com
 USER root
 
 RUN dpkg -i /opt/pmdk-pkg/*.deb
+
+# Update the apt cache and install basic tools
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+	txt2man \
+ && rm -rf /var/lib/apt/lists/*
+
