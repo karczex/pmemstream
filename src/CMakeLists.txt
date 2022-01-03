@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 
 add_cppstyle(src
 	${CMAKE_CURRENT_SOURCE_DIR}/*.[chp]
@@ -17,7 +17,8 @@ set(SOURCES critnib/critnib.c
 			iterator.c
 			region.c
 			span.c
-			libpmemstream.c)
+			libpmemstream.c
+			common/util.c)
 
 add_library(pmemstream SHARED ${SOURCES})
 

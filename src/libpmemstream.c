@@ -72,6 +72,7 @@ int pmemstream_from_map(struct pmemstream **stream, size_t block_size, struct pm
 
 err:
 	free(s);
+
 	return -1;
 }
 
@@ -214,7 +215,7 @@ int pmemstream_append(struct pmemstream *stream, struct pmemstream_region region
 		return ret;
 	}
 
-	stream->memcpy(reserved_dest, data, size, PMEM2_F_MEM_NONTEMPORAL);
+	pmemstream_memcpy(stream->memcpy, reserved_dest, data, size);
 	ret = pmemstream_internal_publish(stream, region, data, size, &reserved_entry, PMEMSTREAM_PUBLISH_NOFLUSH_DATA);
 	if (ret) {
 		return ret;

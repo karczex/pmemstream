@@ -86,6 +86,9 @@ add_test_generic(NAME stream_from_map TRACERS none memcheck pmemcheck drd helgri
 build_test(reserve_publish unittest/reserve_publish.cpp)
 add_test_generic(NAME reserve_publish TRACERS none memcheck pmemcheck)
 
+build_test(pmemstream_memcpy_basic unittest/pmemstream_memcpy_basic.cpp ../src/common/util.c)
+add_test_generic(NAME pmemstream_memcpy_basic TRACERS none memcheck)
+
 if(TESTS_RAPIDCHECK)
 	build_test_rc(NAME util_popcount SRC_FILES unittest/util_popcount.cpp)
 	add_test_generic(NAME util_popcount TRACERS none)
@@ -101,6 +104,10 @@ if(TESTS_RAPIDCHECK)
 
 	build_test_rc(NAME create SRC_FILES unittest/create.cpp)
 	add_test_generic(NAME create TRACERS none)
+
+	build_test_rc(NAME pmemstream_memcpy_pbt SRC_FILES unittest/pmemstream_memcpy_pbt.cpp ../src/common/util.c)
+	add_test_generic(NAME pmemstream_memcpy_pbt TRACERS none memcheck)
+
 endif()
 
 if(GDB AND DEBUG_BUILD)
