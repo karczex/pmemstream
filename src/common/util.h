@@ -1,13 +1,20 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2022, Intel Corporation */
 
 /* Common, internal utils */
 
 #ifndef LIBPMEMSTREAM_UTIL_H
 #define LIBPMEMSTREAM_UTIL_H
 
+#include <libpmem2.h>
+
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define ALIGN_UP(size, align) (((size) + (align)-1) & ~((align)-1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align)-1))
@@ -34,4 +41,25 @@ static inline size_t util_popcount_memory(const uint8_t *data, size_t size)
 	return count;
 }
 
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(__riscv)
+#define CACHELINE_SIZE 64ULL
+#elif defined(__PPC64__)
+#define CACHELINE_SIZE 128ULL
+#else
+#error unable to recognize architecture at compile time
+#endif
+
+/* macro for counting the number of varargs (up to 16)
+ *  XXX: Should we extend this macro to 127 parameters? */
+#define COUNT(...) COUNT_I(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+#define COUNT_I(_, _16, _15, _14, _13, _12, _11, _10, _9, _8, _7, _6, _5, _4, _3, _2, X, ...) X
+
+int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, const size_t argc, ...);
+
+#define pmemstream_memcpy(pmem2_memcpy, dest, ...)                                                                     \
+	pmemstream_memcpy_impl(pmem2_memcpy, dest, COUNT(__VA_ARGS__), __VA_ARGS__)
+
+#ifdef __cplusplus
+} /* end extern "C" */
+#endif
 #endif /* LIBPMEMSTREAM_UTIL_H */
