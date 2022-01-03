@@ -3,6 +3,7 @@
 
 #include "span.h"
 #include "libpmemstream_internal.h"
+#include "common/util.h"
 
 #include <assert.h>
 
@@ -33,8 +34,7 @@ void span_create_entry(struct pmemstream *stream, uint64_t offset, const void *d
 
 	// XXX - use variadic mempcy to store data and metadata at once
 	void *dest = ((uint8_t *)span) + SPAN_ENTRY_METADATA_SIZE;
-	stream->memcpy(dest, data, data_size, PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
-	stream->persist(span, SPAN_ENTRY_METADATA_SIZE);
+	pmemstream_memcpy(stream->memcpy, dest, data,  data_size);
 }
 
 void span_create_region(struct pmemstream *stream, uint64_t offset, size_t size)
