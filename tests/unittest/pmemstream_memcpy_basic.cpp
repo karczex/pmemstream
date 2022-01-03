@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2021, Intel Corporation */
 
+/*
+ * pmemstream_memcpy_basic.cpp -- pmemstream_memcpy basic tests, which may be
+ * run if rapidcheck is not available
+ */
+
+#include "common/util.h"
 #include "libpmemstream_internal.h"
 #include "unittest.hpp"
 
-#include <rapidcheck.h>
-
 #include <algorithm>
-#include <cstdio>
-#include <filesystem>
-#include <fstream>
-#include <memory>
 #include <vector>
+#include <iostream>
+
+static constexpr size_t stream_size = 1024 * 1024;
+static constexpr size_t block_size = 4096;
 
 struct aligned_struct {
 	size_t x;
@@ -23,9 +27,11 @@ struct aligned_struct {
 
 /* Test basic functionality of memcpy with cache line aligned data.
  * pmemstream is needed only to get memcpy implementation, as the test copy data to the dram structure */
-static void test_basic(struct pmemstream *stream)
+static void test_basic(std::string path)
 {
-	auto to_fill = aligned_struct();
+	auto stream = make_pmemstream(path, block_size, stream_size);
+
+	aligned_struct to_fill;
 	size_t a = 2;
 	size_t b = 1;
 	size_t c[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -49,35 +55,29 @@ static void test_basic(struct pmemstream *stream)
 }
 
 /* Test memcpy with data not aligned to the cache line */
-static void test_not_aligned_array(struct pmemstream *stream)
+static void test_not_aligned_array(std::string path)
 {
-	size_t not_aligned_data[] = {0x1, 0x2};
-	size_t buf[sizeof(not_aligned_data) / sizeof(*not_aligned_data)];
+	auto stream = make_pmemstream(path, block_size, stream_size);
 
-	pmemstream_memcpy(stream->memcpy, buf, not_aligned_data, sizeof(not_aligned_data));
-	for (size_t i = 0; i < sizeof(not_aligned_data) / sizeof(not_aligned_data[0]); i++) {
-		UT_ASSERTeq(buf[i], not_aligned_data[i]);
-	}
+	std::vector<size_t> not_aligned_data = {0x01, 0x02};
+	std::vector<size_t> buf(not_aligned_data.size());
+
+	pmemstream_memcpy(stream->memcpy, buf.data(), not_aligned_data.data(), not_aligned_data.size() * sizeof(not_aligned_data[0]));
+
+	UT_ASSERT(std::equal(not_aligned_data.begin(), not_aligned_data.end(), buf.begin()));
 }
 
 int main(int argc, char *argv[])
 {
-	/* XXX: Use consistent approach for file creation across all tests.
-	 * Probably this is the one which we want to use. */
 	if (argc < 2) {
-		UT_FATAL("usage: %s file-name", argv[0]);
+		std::cout << "Usage: " << argv[0] << " file" << std::endl;
+		return -1;
 	}
-	auto path = std::filesystem::path(argv[1]);
 
-	if (!std::filesystem::exists(path)) {
-		std::ofstream(path).put(0);
-		std::filesystem::resize_file(path, 1024 * 1024);
-	}
-	static constexpr size_t block_size = 4096;
-	auto stream = make_pmemstream(path, block_size, std::filesystem::file_size(path));
+	auto path = std::string(argv[1]);
 
 	return run_test([&] {
-		test_basic(stream.get());
-		test_not_aligned_array(stream.get());
+		test_basic(path);
+		test_not_aligned_array(path);
 	});
 }

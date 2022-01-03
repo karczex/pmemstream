@@ -29,13 +29,16 @@ int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, cons
 
 	/* Parse variadic arguments */
 	va_list argv;
+
+	assert(argc % 2 == 0);
+
 	const size_t parts = argc / 2;
 	const size_t last_part = parts - 1;
 
 	va_start(argv, argc);
 	for (size_t i = 0; i < parts; i++) {
 
-		struct sized_ptr input = {0}; // {} ?
+		struct sized_ptr input = {0};
 		input.ptr = va_arg(argv, uint8_t *);
 		input.size = va_arg(argv, size_t);
 
