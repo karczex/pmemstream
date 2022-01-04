@@ -17,13 +17,31 @@ struct buffer {
 	struct sized_ptr tail;
 };
 
+struct write_combining_buffer {
+	uint8_t array[CACHELINE_SIZE];
+	size_t offset;
+};
+
+static void memcpy_to_tmp_buffer(struct write_combining_buffer *dest, struct sized_ptr src) {
+		memcpy(dest->array + dest->offset, src.ptr, src.size);
+		dest->offset += src.size;
+}
+
+static void memcpy_directly_to_pmem(pmem2_memcpy_fn pmem2_memcpy, uint8_t **dest, struct sized_ptr src, unsigned flags) {
+	pmem2_memcpy(*dest, src.ptr, src.size, flags);
+	*dest += src.size;
+}
+
+static void memcpy_tmp_buffer_to_pmem(pmem2_memcpy_fn pmem2_memcpy,  uint8_t **dest, struct write_combining_buffer *src, unsigned flags){
+		pmem2_memcpy(*dest, src->array, src->offset, flags);
+		*dest += src->offset;
+		src->offset = 0;
+}
+
 int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, const size_t argc, ...)
 {
 
-	struct {
-		uint8_t array[CACHELINE_SIZE];
-		size_t offset;
-	} tmp_buffer = {0};
+	struct write_combining_buffer tmp_buffer = {0};
 
 	uint8_t *dest = (uint8_t *)destination;
 
@@ -57,10 +75,6 @@ int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, cons
 		buff.tail.size = (input.size - buff.head.size) % CACHELINE_SIZE;
 		buff.body.size = input.size - buff.head.size - buff.tail.size;
 
-		assert(buff.head.size >= 0);
-		assert(buff.body.size >= 0);
-		assert(buff.tail.size >= 0);
-
 		/* Compute chunks pointers */
 		buff.head.ptr = input.ptr;
 		buff.body.ptr = buff.head.ptr + buff.head.size;
@@ -70,19 +84,14 @@ int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, cons
 
 		/* Copy head to temporary buffer */
 		if (buff.head.size > 0) {
-			memcpy(tmp_buffer.array + tmp_buffer.offset / sizeof(tmp_buffer.array[0]), buff.head.ptr,
-			       buff.head.size);
-			tmp_buffer.offset += buff.head.size;
+			memcpy_to_tmp_buffer(&tmp_buffer, buff.head);
 		}
 
 		assert(tmp_buffer.offset <= CACHELINE_SIZE);
 
 		/* Copy temporary buffer to pmem */
 		if (tmp_buffer.offset == CACHELINE_SIZE) {
-			pmem2_memcpy(dest, tmp_buffer.array, CACHELINE_SIZE,
-				     PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
-			tmp_buffer.offset = 0;
-			dest += CACHELINE_SIZE;
+			memcpy_tmp_buffer_to_pmem(pmem2_memcpy, &dest, &tmp_buffer, PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
 		}
 
 		/* Copy body to pmem */
@@ -91,16 +100,12 @@ int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, cons
 			if ((i != last_part) || (buff.tail.size != 0)) {
 				flags |= PMEM2_F_MEM_NODRAIN;
 			}
-
-			pmem2_memcpy(dest, buff.body.ptr, buff.body.size, flags);
-			dest += buff.body.size;
+			memcpy_directly_to_pmem(pmem2_memcpy, &dest, buff.body, flags);
 		}
 
 		/* Copy tail to temporary buffer */
 		if (buff.tail.size > 0) {
-			memcpy(tmp_buffer.array + tmp_buffer.offset / sizeof(tmp_buffer.array[0]), buff.tail.ptr,
-			       buff.tail.size);
-			tmp_buffer.offset += buff.tail.size;
+			memcpy_to_tmp_buffer(&tmp_buffer, buff.tail);
 		}
 	}
 
@@ -108,7 +113,7 @@ int pmemstream_memcpy_impl(pmem2_memcpy_fn pmem2_memcpy, void *destination, cons
 
 	/* Copy rest of the data from temporary buffer to pmem */
 	if (tmp_buffer.offset > 0) {
-		pmem2_memcpy(dest, tmp_buffer.array, tmp_buffer.offset, PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
+		memcpy_tmp_buffer_to_pmem(pmem2_memcpy, &dest, &tmp_buffer, PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
 	}
 
 	va_end(argv);
