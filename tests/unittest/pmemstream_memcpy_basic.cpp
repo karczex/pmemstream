@@ -29,6 +29,7 @@ struct aligned_struct {
  * pmemstream is needed only to get memcpy implementation, as the test copy data to the dram structure */
 static void test_basic(std::string path)
 {
+	std::cout << "starting basic test" << std::endl;
 	auto stream = make_pmemstream(path, block_size, stream_size);
 
 	aligned_struct to_fill;
@@ -39,6 +40,7 @@ static void test_basic(std::string path)
 	size_t e[] = {31, 32, 33, 34, 35, 36, 37, 38};
 	auto ret = pmemstream_memcpy(stream->memcpy, &to_fill, &a, sizeof(a), &b, sizeof(b), c, sizeof(c), d, sizeof(d),
 				     e, sizeof(e));
+	std::cout << "data copyied" << std::endl;
 
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(to_fill.x, a);
@@ -57,6 +59,8 @@ static void test_basic(std::string path)
 /* Test memcpy with data not aligned to the cache line */
 static void test_not_aligned_array(std::string path)
 {
+
+	std::cout << "starting not aligned array test" << std::endl;
 	auto stream = make_pmemstream(path, block_size, stream_size);
 
 	std::vector<size_t> not_aligned_data = {0x01, 0x02};
@@ -65,12 +69,15 @@ static void test_not_aligned_array(std::string path)
 	pmemstream_memcpy(stream->memcpy, buf.data(), not_aligned_data.data(),
 			  not_aligned_data.size() * sizeof(not_aligned_data[0]));
 
+	std::cout << "data copyied" << std::endl;
 	UT_ASSERT(std::equal(not_aligned_data.begin(), not_aligned_data.end(), buf.begin()));
 }
 
 /* Test memcpy with  zero sized element as argument */
 static void test_zero_sized_parameter(std::string path)
 {
+
+	std::cout << "starting not zero parameter test" << std::endl;
 	auto stream = make_pmemstream(path, block_size, stream_size);
 
 	size_t to_fill[2];
@@ -80,6 +87,7 @@ static void test_zero_sized_parameter(std::string path)
 
 	auto ret = pmemstream_memcpy(stream->memcpy, &to_fill, &a, sizeof(a), nullptr, 0, &b, sizeof(b));
 
+	std::cout << "data copyied" << std::endl;
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(a, to_fill[0]);
 	UT_ASSERTeq(b, to_fill[1]);
