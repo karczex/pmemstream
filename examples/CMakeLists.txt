@@ -44,3 +44,7 @@ target_link_libraries(example-01_basic_iterate ${LIBPMEM2_LIBRARIES})
 
 add_example(02_visual_iterator 02_visual_iterator/main.cpp)
 target_link_libraries(example-02_visual_iterator ${LIBPMEM2_LIBRARIES})
+
+add_example(03_cpp_wrapper 03_cpp_wrapper/main.cpp)
+target_link_libraries(example-03_cpp_wrapper ${LIBPMEM2_LIBRARIES})
+
