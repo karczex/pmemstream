@@ -102,6 +102,9 @@ add_test_generic(NAME reserve_and_publish TRACERS none memcheck pmemcheck drd he
 build_test(stream_from_map api_c/stream_from_map.c)
 add_test_generic(NAME stream_from_map TRACERS none memcheck pmemcheck drd helgrind)
 
+build_test(pmemstream_memcpy_basic unittest/pmemstream_memcpy_basic.cpp ../src/memcpy.c)
+add_test_generic(NAME pmemstream_memcpy_basic TRACERS none memcheck)
+
 if(TESTS_RAPIDCHECK)
 	build_test_rc(NAME append SRC_FILES unittest/append.cpp)
 	add_test_generic(NAME append TRACERS none)
@@ -120,6 +123,9 @@ if(TESTS_RAPIDCHECK)
 
 	build_test_rc(NAME region_runtime_initialize SRC_FILES unittest/region_runtime_initialize.cpp)
 	add_test_generic(NAME region_runtime_initialize TRACERS none memcheck)
+
+	build_test_rc(NAME pmemstream_memcpy_pbt SRC_FILES unittest/pmemstream_memcpy_pbt.cpp ../src/memcpy.c)
+	add_test_generic(NAME pmemstream_memcpy_pbt TRACERS none memcheck)
 
 	build_test_rc(NAME reserve_publish SRC_FILES unittest/reserve_publish.cpp)
 	add_test_generic(NAME reserve_publish TRACERS none memcheck)
