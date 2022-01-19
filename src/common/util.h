@@ -15,6 +15,14 @@
 
 #define MEMBER_SIZE(type, member) sizeof(((struct type *)NULL)->member)
 
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(__riscv)
+#define CACHELINE_SIZE 64ULL
+#elif defined(__PPC64__)
+#define CACHELINE_SIZE 128ULL
+#else
+#error unable to recognize architecture at compile time
+#endif
+
 static inline unsigned char util_popcount64(uint64_t value)
 {
 	return (unsigned char)__builtin_popcountll(value);
