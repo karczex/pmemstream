@@ -146,8 +146,11 @@ int main(int argc, char *argv[])
 	/* XXX: Add initialization phase whith separate measurement */
 	auto results = benchmark::measure<std::chrono::nanoseconds>(config.iterations, [&] {
 		for (size_t i = 0; i < data.size() * sizeof(uint64_t); i += config.element_size) {
-			pmemstream_append(stream.get(), region, region_runtime_ptr, data_chunks + i,
+			int ret = pmemstream_append(stream.get(), region, region_runtime_ptr, data_chunks + i,
 					  config.element_size, NULL);
+			if (ret != 0) {
+				exit(1);
+			}
 		}
 	});
 
