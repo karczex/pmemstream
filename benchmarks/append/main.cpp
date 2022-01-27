@@ -69,7 +69,7 @@ class config {
 	size_t size = std::max(PMEMLOG_MIN_POOL, TEST_DEFAULT_STREAM_SIZE);
 	size_t block_size = TEST_DEFAULT_BLOCK_SIZE;
 	size_t region_size = TEST_DEFAULT_REGION_SIZE;
-	size_t element_count = 100000;
+	size_t element_count = 100;
 	size_t element_size = 1024;
 	size_t iterations = 10;
 	bool null_region_runtime = false;
