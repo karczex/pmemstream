@@ -241,6 +241,11 @@ class pmemstream_workload : public workload_base {
 
 		auto bytes_to_generate = cfg.element_count * cfg.element_size;
 		prepare_data(bytes_to_generate);
+
+		/* initialize region */
+		if (pmemstream_append(stream.get(), region, region_runtime_ptr, nullptr, 0, NULL) < 0) {
+			throw std::runtime_error("Error during region initialization");
+		}
 	}
 
 	void perform() override
