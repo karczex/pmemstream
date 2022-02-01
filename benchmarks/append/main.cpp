@@ -201,10 +201,13 @@ class pmemlog_workload : public workload_base {
 	void initialize() override
 	{
 		auto path = cfg.path.c_str();
-		plp = pmemlog_create(path, cfg.size, S_IRWXU);
-		if (plp == NULL)
+		if (plp == nullptr) {
+			plp = pmemlog_create(path, cfg.size, S_IRWXU);
+		}
+		if (plp == nullptr) {
 			plp = pmemlog_open(path);
-		if (plp == NULL) {
+		}
+		if (plp == nullptr) {
 			throw std::runtime_error("Creating file: " + std::string(path) +
 						 " caused error: " + std::strerror(errno));
 		}
@@ -219,7 +222,7 @@ class pmemlog_workload : public workload_base {
 
  private:
 	config cfg;
-	PMEMlogpool *plp;
+	PMEMlogpool *plp = nullptr;
 };
 
 class pmemstream_workload : public workload_base {
