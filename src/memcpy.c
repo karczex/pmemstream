@@ -48,7 +48,7 @@ void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const v
 	/* Copy rest of the data */
 
 	if (not_aligned_tail_size != 0) {
-		pmem2_memcpy(dest, src, not_aligned_tail_size, PMEM2_F_MEM_NONTEMPORAL);
+		pmem2_memcpy(dest, src, not_aligned_tail_size, PMEM2_F_MEM_TEMPORAL);
 	}
 	return destination;
 }
