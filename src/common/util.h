@@ -9,6 +9,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 #define ALIGN_UP(size, align) (((size) + (align)-1) & ~((align)-1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align)-1))
 

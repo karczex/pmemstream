@@ -2,8 +2,11 @@
 /* Copyright 2021-2022, Intel Corporation */
 
 #include "span.h"
+#include "common/util.h"
+#include "memcpy.h"
 
 #include <assert.h>
+#include <string.h>
 
 #include "libpmemstream_internal.h"
 
@@ -60,6 +63,25 @@ void span_create_entry_no_flush_data(struct pmemstream *stream, uint64_t offset,
 	span_create_entry_internal(stream, offset, data_size, popcount, SPAN_ENTRY_METADATA_SIZE);
 }
 
+void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, void *data, size_t data_size,
+				 size_t popcount)
+{
+
+	span_bytes *span = (span_bytes *)span_offset_to_span_ptr(stream, offset);
+
+	uint64_t write_combining_buffer[8];
+	size_t data_to_wc = MIN(48, data_size);
+
+	write_combining_buffer[0] = data_size | SPAN_ENTRY;
+	write_combining_buffer[1] = popcount;
+	memcpy(write_combining_buffer + 2, data, data_to_wc);
+	size_t wc_to_pmem = 16 + data_to_wc;
+	pmemstream_memcpy(stream->memcpy, span, write_combining_buffer, wc_to_pmem);
+	if (data_size > data_to_wc) {
+		size_t data_tail_size = data_size - data_to_wc;
+		pmemstream_memcpy(stream->memcpy, span + wc_to_pmem, data + data_to_wc, data_tail_size);
+	}
+}
 /* Creates region span at given offset.
  * It only sets region's type and size.
  */

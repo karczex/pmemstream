@@ -17,7 +17,7 @@ void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const v
 	/* Align destination with cache line */
 	if (dest_missalignment > 0) {
 		size_t to_align = (dest_missalignment > count) ? count : dest_missalignment;
-		pmem2_memcpy(dest, src, to_align, PMEM2_F_MEM_NOFLUSH);
+		pmem2_memcpy(dest, src, to_align, PMEM2_F_MEM_NODRAIN);
 		if (count <= dest_missalignment) {
 			return destination;
 		}

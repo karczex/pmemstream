@@ -17,10 +17,11 @@ set(SOURCES critnib/critnib.c
 			id_manager.c
 			iterator.c
 			region.c
+			memcpy.c
 			span.c
 			thread_id.c
 			libpmemstream.c
-			memcpy.c)
+			)
 
 add_library(pmemstream SHARED ${SOURCES})
 

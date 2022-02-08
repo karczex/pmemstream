@@ -5,6 +5,7 @@
 
 #include "common/util.h"
 #include "libpmemstream_internal.h"
+#include "memcpy.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -36,8 +37,9 @@ static void pmemstream_init(struct pmemstream *stream)
 	stream->persist(stream->data, sizeof(struct pmemstream_data));
 
 	span_create_empty(stream, 0, stream->usable_size - SPAN_EMPTY_METADATA_SIZE);
-	stream->memcpy(stream->data->header.signature, PMEMSTREAM_SIGNATURE, strlen(PMEMSTREAM_SIGNATURE),
-		       PMEM2_F_MEM_NONTEMPORAL);
+
+	pmemstream_memcpy(stream->memcpy, stream->data->header.signature, PMEMSTREAM_SIGNATURE,
+			  strlen(PMEMSTREAM_SIGNATURE));
 }
 
 int pmemstream_from_map(struct pmemstream **stream, size_t block_size, struct pmem2_map *map)
