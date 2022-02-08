@@ -237,9 +237,7 @@ int pmemstream_append(struct pmemstream *stream, struct pmemstream_region region
 		return ret;
 	}
 
-	stream->memcpy(reserved_dest, data, size, PMEM2_F_MEM_NODRAIN);
-	span_create_entry_no_flush_data(stream, reserved_entry.offset, size, util_popcount_memory(data, size));
-	region_runtime_increase_committed_offset(region_runtime, pmemstream_entry_total_size_aligned(size));
+	span_create_entry_with_data(stream, reserved_entry.offset, data, size, util_popcount_memory(data, size));
 
 	if (new_entry) {
 		new_entry->offset = reserved_entry.offset;

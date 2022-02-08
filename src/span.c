@@ -63,7 +63,7 @@ void span_create_entry_no_flush_data(struct pmemstream *stream, uint64_t offset,
 	span_create_entry_internal(stream, offset, data_size, popcount, SPAN_ENTRY_METADATA_SIZE);
 }
 
-void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, void *data, size_t data_size,
+void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, const void *data, size_t data_size,
 				 size_t popcount)
 {
 
