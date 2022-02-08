@@ -74,7 +74,7 @@ void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, con
 	span[0] = data_size | SPAN_ENTRY;
 	span[1] = popcount;
 
-	stream->memcpy(span + 2, data, data_size, PMEM2_F_MEM_NOFLUSH);
+	stream->memcpy(span + 2, data, data_size, PMEM2_F_MEM_NOFLUSH | PMEM2_F_MEM_NONTEMPORAL);
 	stream->persist(span, data_size + SPAN_ENTRY_METADATA_SIZE);
 }
 /* Creates region span at given offset.
