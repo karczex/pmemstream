@@ -75,11 +75,6 @@ endif()
 # ----------------------------------------------------------------- #
 ## All tests
 # ----------------------------------------------------------------- #
-build_test_ext(NAME id_manager_multithreaded SRC_FILES unittest/id_manager_multithreaded.cpp ../src/id_manager.c ../src/critnib/critnib.c)
-add_test_generic(NAME id_manager_multithreaded TRACERS none memcheck drd helgrind)
-
-build_test_ext(NAME thread_id SRC_FILES unittest/thread_id.cpp ../src/id_manager.c ../src/thread_id.c ../src/critnib/critnib.c)
-add_test_generic(NAME thread_id TRACERS none memcheck drd helgrind)
 
 build_test(append_entry api_c/append_entry.c)
 add_test_generic(NAME append_entry TRACERS none memcheck pmemcheck drd helgrind)
