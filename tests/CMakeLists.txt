@@ -103,6 +103,9 @@ build_test(stream_from_map api_c/stream_from_map.c)
 add_test_generic(NAME stream_from_map TRACERS none memcheck pmemcheck drd helgrind)
 
 if(TESTS_RAPIDCHECK)
+	build_test_rc(NAME align_macros SRC_FILES unittest/align_macros.cpp)
+	add_test_generic(NAME align_macros TRACERS none)
+
 	build_test_rc(NAME append SRC_FILES unittest/append.cpp)
 	add_test_generic(NAME append TRACERS none)
 
