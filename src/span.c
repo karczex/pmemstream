@@ -69,18 +69,13 @@ void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, con
 
 	span_bytes *span = (span_bytes *)span_offset_to_span_ptr(stream, offset);
 
-	uint64_t write_combining_buffer[8];
-	size_t data_to_wc = MIN(48, data_size);
+	size_t header[2];
+	header[0] = data_size | SPAN_ENTRY;
+	header[1] = popcount;
+	size_t header_size = sizeof(header)*sizeof(header[0]);
 
-	write_combining_buffer[0] = data_size | SPAN_ENTRY;
-	write_combining_buffer[1] = popcount;
-	memcpy(write_combining_buffer + 2, data, data_to_wc);
-	size_t wc_to_pmem = 16 + data_to_wc;
-	pmemstream_memcpy(stream->memcpy, span, write_combining_buffer, wc_to_pmem);
-	if (data_size > data_to_wc) {
-		size_t data_tail_size = data_size - data_to_wc;
-		pmemstream_memcpy(stream->memcpy, span + wc_to_pmem, data + data_to_wc, data_tail_size);
-	}
+	pmemstream_memcpy(stream->memcpy, span, header, header_size );
+	pmemstream_memcpy(stream->memcpy, span + header_size, data, data_size);
 }
 /* Creates region span at given offset.
  * It only sets region's type and size.
