@@ -2,6 +2,7 @@
 /* Copyright 2021-2022, Intel Corporation */
 
 #include "span.h"
+#include "memcpy.h"
 
 #include <assert.h>
 
@@ -34,12 +35,15 @@ static void span_create_entry_internal(struct pmemstream *stream, uint64_t offse
 {
 	span_bytes *span = (span_bytes *)span_offset_to_span_ptr(stream, offset);
 	assert((data_size & SPAN_TYPE_MASK) == 0);
-
+	
 	// XXX - use variadic mempcy to store data and metadata at once
-	span[0] = data_size | SPAN_ENTRY;
-	span[1] = popcount;
+	size_t header[2];
+	header[0] = data_size | SPAN_ENTRY;
+	header[1] = popcount;
 
-	stream->persist(span, flush_size);
+//	stream->persist(span, flush_size);
+
+	pmemstream_memcpy(stream->memcpy, span, header, flush_size);
 }
 
 /* Creates entry span at given offset.
