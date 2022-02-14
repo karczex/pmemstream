@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /* Common, internal utils */
 
@@ -9,8 +9,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ALIGN_UP(size, align) (((size) + (align)-1) & ~((align)-1))
-#define ALIGN_DOWN(size, align) ((size) & ~((align)-1))
+#define ALIGN_UP(size, align) (size + ((size % align == 0) ? 0 : (align - size % align)))
+#define ALIGN_DOWN(size, align) (size - (size % align))
 
 #define MEMBER_SIZE(type, member) sizeof(((struct type *)NULL)->member)
 
