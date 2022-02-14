@@ -6,6 +6,8 @@
 #ifndef LIBPMEMSTREAM_MEMCPY_H
 #define LIBPMEMSTREAM_MEMCPY_H
 
+#include "libpmemstream_internal.h"
+
 #include <libpmem2.h>
 #include <stdint.h>
 
@@ -14,7 +16,7 @@ extern "C" {
 #endif
 
 // XXX: Do we want to add it to library API? It may be usefull for reserve-publish scenario
-void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const void *source, size_t count);
+void *pmemstream_memcpy(struct pmemstream *stream, void *destination, const void *source, size_t count);
 
 #ifdef __cplusplus
 } /* end extern "C" */

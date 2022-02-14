@@ -2,10 +2,11 @@
 /* Copyright 2021-2022, Intel Corporation */
 
 #include "span.h"
+#include "libpmemstream_internal.h"
+#include "memcpy.h"
 
 #include <assert.h>
-
-#include "libpmemstream_internal.h"
+#include <string.h>
 
 const span_bytes *span_offset_to_span_ptr(const struct pmemstream *stream, uint64_t offset)
 {
@@ -42,6 +43,36 @@ static void span_create_entry_internal(struct pmemstream *stream, uint64_t offse
 	stream->persist(span, flush_size);
 }
 
+/* Creates entry span filled with data at given offset.
+ */
+void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, const void *data, size_t data_size,
+				 size_t popcount)
+{
+
+	uint8_t *data_ptr = (uint8_t *)data;
+	uint8_t *span_ptr = (uint8_t *)span_offset_to_span_ptr(stream, offset);
+
+	size_t write_combine_buffer[CACHELINE_SIZE / sizeof(size_t)];
+
+	write_combine_buffer[0] = data_size | SPAN_ENTRY;
+	write_combine_buffer[1] = popcount;
+
+	size_t data_to_write_combine_size = MIN(CACHELINE_SIZE - SPAN_ENTRY_METADATA_SIZE, data_size);
+	size_t write_combine_size = data_to_write_combine_size + SPAN_ENTRY_METADATA_SIZE;
+
+	memcpy(write_combine_buffer + 2, data_ptr, data_to_write_combine_size);
+	pmemstream_memcpy(stream, span_ptr, write_combine_buffer, write_combine_size);
+
+	data_ptr += data_to_write_combine_size;
+
+	if (data_size > data_to_write_combine_size) {
+		size_t bytes_to_copy = data_size - data_to_write_combine_size;
+		pmemstream_memcpy(stream, span_ptr + write_combine_size, data_ptr, bytes_to_copy);
+	}
+
+	stream->drain();
+}
+
 /* Creates entry span at given offset.
  * It sets entry's metadata: type, size of the data and popcount.
  * It flushes metadata along with the data (of given 'data_size'), which are stored in the spans following metadata.
@@ -49,15 +80,6 @@ static void span_create_entry_internal(struct pmemstream *stream, uint64_t offse
 void span_create_entry(struct pmemstream *stream, uint64_t offset, size_t data_size, size_t popcount)
 {
 	span_create_entry_internal(stream, offset, data_size, popcount, SPAN_ENTRY_METADATA_SIZE + data_size);
-}
-
-/* Creates entry span at given offset.
- * It sets entry's metadata: type, size of the data and popcount.
- * It flushes only the metadata.
- */
-void span_create_entry_no_flush_data(struct pmemstream *stream, uint64_t offset, size_t data_size, size_t popcount)
-{
-	span_create_entry_internal(stream, offset, data_size, popcount, SPAN_ENTRY_METADATA_SIZE);
 }
 
 /* Creates region span at given offset.
@@ -105,7 +127,6 @@ struct span_runtime span_get_entry_runtime(const struct pmemstream *stream, uint
 	srt.entry.popcount = span[1];
 	srt.data_offset = offset + SPAN_ENTRY_METADATA_SIZE;
 	srt.total_size = ALIGN_UP(srt.entry.size + SPAN_ENTRY_METADATA_SIZE, sizeof(span_bytes));
-
 	return srt;
 }
 

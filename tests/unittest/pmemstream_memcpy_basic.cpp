@@ -39,7 +39,7 @@ static void test_basic(std::string path)
 				 .padding = {21, 22, 23, 24},
 				 .aligned_data = {31, 32, 33, 34, 35, 36, 37, 38}};
 
-	auto ret = pmemstream_memcpy(stream->memcpy, &to_fill, &filled, sizeof(filled));
+	auto ret = pmemstream_memcpy(stream.get(), &to_fill, &filled, sizeof(filled));
 
 	UT_ASSERTeq_ptr(ret, &to_fill);
 	UT_ASSERTeq(to_fill.x, filled.x);
@@ -63,7 +63,7 @@ static void test_not_aligned_array(std::string path)
 	std::vector<size_t> not_aligned_data = {0x01, 0x02};
 	std::vector<size_t> buf(not_aligned_data.size());
 
-	pmemstream_memcpy(stream->memcpy, buf.data(), not_aligned_data.data(),
+	pmemstream_memcpy(stream.get(), buf.data(), not_aligned_data.data(),
 			  not_aligned_data.size() * sizeof(not_aligned_data[0]));
 
 	UT_ASSERT(std::equal(not_aligned_data.begin(), not_aligned_data.end(), buf.begin()));
@@ -77,7 +77,7 @@ static void test_zero_sized_parameter(std::string path)
 	size_t to_fill = 0xDEADBEEF;
 	size_t data = 0xC00FEE;
 
-	auto ret = pmemstream_memcpy(stream->memcpy, &to_fill, &data, 0);
+	auto ret = pmemstream_memcpy(stream.get(), &to_fill, &data, 0);
 
 	UT_ASSERTeq_ptr(ret, &to_fill);
 	UT_ASSERTeq(to_fill, 0xDEADBEEF);

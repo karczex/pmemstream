@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <string.h>
 
-void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const void *source, size_t count)
+void *pmemstream_memcpy(struct pmemstream *stream, void *destination, const void *source, size_t count)
 {
 	uint8_t *dest = (uint8_t *)destination;
 	uint8_t *src = (uint8_t *)source;
@@ -17,7 +17,7 @@ void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const v
 	/* Align destination with cache line */
 	if (dest_missalignment > 0) {
 		size_t to_align = (dest_missalignment > count) ? count : dest_missalignment;
-		pmem2_memcpy(dest, src, to_align, 0);
+		stream->memcpy(dest, src, to_align, PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
 		if (count <= dest_missalignment) {
 			return destination;
 		}
@@ -35,12 +35,7 @@ void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const v
 
 	/* Copy all the data which may be alligned to the cache line */
 	if (alligned_size != 0) {
-		unsigned flags = PMEM2_F_MEM_NONTEMPORAL;
-		/* NODRAIN if another pmem2_memcpy would be called */
-		if (not_aligned_tail_size != 0) {
-			flags |= PMEM2_F_MEM_NODRAIN;
-		}
-		pmem2_memcpy(dest, src, alligned_size, flags);
+		stream->memcpy(dest, src, alligned_size, PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
 		dest += alligned_size;
 		src += alligned_size;
 	}
@@ -48,7 +43,7 @@ void *pmemstream_memcpy(pmem2_memcpy_fn pmem2_memcpy, void *destination, const v
 	/* Copy rest of the data */
 
 	if (not_aligned_tail_size != 0) {
-		pmem2_memcpy(dest, src, not_aligned_tail_size, PMEM2_F_MEM_NONTEMPORAL);
+		stream->memcpy(dest, src, not_aligned_tail_size, PMEM2_F_MEM_TEMPORAL | PMEM2_F_MEM_NODRAIN);
 	}
 	return destination;
 }

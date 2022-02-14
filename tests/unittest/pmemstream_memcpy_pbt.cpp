@@ -37,8 +37,7 @@ int main(int argc, char *argv[])
 
 				std::unique_ptr<uint8_t[]> output(new uint8_t[data.size()]);
 
-				void *ret_val =
-					pmemstream_memcpy(stream->memcpy, output.get(), data.data(), data.size());
+				void *ret_val = pmemstream_memcpy(stream.get(), output.get(), data.data(), data.size());
 				RC_ASSERT(reinterpret_cast<intptr_t>(ret_val) ==
 					  reinterpret_cast<intptr_t>(output.get()));
 				auto res = std::equal(data.begin(), data.end(), output.get());

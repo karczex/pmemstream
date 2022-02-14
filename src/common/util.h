@@ -15,6 +15,8 @@
 
 #define MEMBER_SIZE(type, member) sizeof(((struct type *)NULL)->member)
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 #if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(__riscv)
 #define CACHELINE_SIZE 64ULL
 #elif defined(__PPC64__)
