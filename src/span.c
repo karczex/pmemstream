@@ -61,13 +61,15 @@ void span_create_entry_with_data(struct pmemstream *stream, uint64_t offset, con
 	size_t write_combine_size = data_to_write_combine_size + SPAN_ENTRY_METADATA_SIZE;
 
 	memcpy(write_combine_buffer + 2, data_ptr, data_to_write_combine_size);
-	pmemstream_memcpy(stream, span_ptr, write_combine_buffer, write_combine_size);
+	stream->memcpy(span_ptr, write_combine_buffer, write_combine_size,
+		       PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
 
 	data_ptr += data_to_write_combine_size;
 
 	if (data_size > data_to_write_combine_size) {
 		size_t bytes_to_copy = data_size - data_to_write_combine_size;
-		pmemstream_memcpy(stream, span_ptr + write_combine_size, data_ptr, bytes_to_copy);
+		stream->memcpy(span_ptr + write_combine_size, data_ptr, bytes_to_copy,
+			       PMEM2_F_MEM_NONTEMPORAL | PMEM2_F_MEM_NODRAIN);
 	}
 
 	stream->drain();
