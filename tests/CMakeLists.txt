@@ -168,8 +168,11 @@ endif()
 ## Tests using benchmarks
 # ----------------------------------------------------------------- #
 if(BUILD_BENCHMARKS)
-	add_dependencies(tests
-				benchmark-append)
+	add_dependencies(tests benchmark-append)
 	add_test_generic(NAME benchmark-append SCRIPT benchmarks/append.cmake  TRACERS none)
+
+	add_dependencies(tests benchmark-pmem2_memcpy)
+	add_test_generic(NAME benchmark-pmem2_memcpy SCRIPT benchmarks/pmem2_memcpy.cmake  TRACERS none)
+
 endif()
 

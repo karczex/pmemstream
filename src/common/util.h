@@ -13,6 +13,14 @@
 #define ALIGN_DOWN(size, align) ((size) & ~((align)-1))
 #define IS_POW2(value) ((value != 0 && (value & (value - 1)) == 0))
 
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(__riscv)
+#define CACHELINE_SIZE 64ULL
+#elif defined(__PPC64__)
+#define CACHELINE_SIZE 128ULL
+#else
+#error unable to recognize architecture at compile time
+#endif
+
 #define MEMBER_SIZE(type, member) sizeof(((struct type *)NULL)->member)
 
 static inline unsigned char util_popcount64(uint64_t value)
