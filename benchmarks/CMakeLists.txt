@@ -8,7 +8,7 @@
 
 add_custom_target(benchmarks)
 
-include_directories(${PMEMSTREAM_INCLUDE_DIRS} ${PMEMSTREAM_ROOT_DIR}/tests/common .)
+include_directories(${PMEMSTREAM_INCLUDE_DIRS} ${PMEMSTREAM_ROOT_DIR}/src ${PMEMSTREAM_ROOT_DIR}/tests/common .)
 link_directories(${PMEMSTREAM_LIBRARY_DIRS})
 pkg_check_modules(LIBPMEMLOG REQUIRED libpmemlog)
 
@@ -35,3 +35,5 @@ add_check_whitespace(benchmarks ${CMAKE_CURRENT_SOURCE_DIR}/*.*
 # ----------------------------------------------------------------- #
 
 add_benchmark(append append/main.cpp)
+
+add_benchmark(pmem2_memcpy pmem2_memcpy/main.cpp)
