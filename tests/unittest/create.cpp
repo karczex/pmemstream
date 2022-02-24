@@ -146,8 +146,8 @@ int main(int argc, char *argv[])
 				RC_PRE(block_size % 64 != 0 || !IS_POW2(block_size));
 
 				try {
-					make_pmemstream(get_test_config().filename, block_size,
-							get_test_config().stream_size);
+					pmem::stream constructor_should_fail(get_test_config().filename, block_size,
+									     get_test_config().stream_size);
 					UT_ASSERT_UNREACHABLE;
 				} catch (std::runtime_error &e) {
 				} catch (...) {
@@ -158,7 +158,9 @@ int main(int argc, char *argv[])
 		/* verify if a stream of block_size = 0 cannot be created */
 		{
 			try {
-				make_pmemstream(get_test_config().filename, 0, get_test_config().stream_size);
+
+				pmem::stream constructor_should_fail(get_test_config().filename, 0,
+								     get_test_config().stream_size);
 				UT_ASSERT_UNREACHABLE;
 			} catch (std::runtime_error &e) {
 				/* noop */
