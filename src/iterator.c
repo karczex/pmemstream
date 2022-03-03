@@ -25,6 +25,13 @@ int pmemstream_region_iterator_new(struct pmemstream_region_iterator **iterator,
 	return 0;
 }
 
+struct pmemstream_region* pmemstream_region_iterator_get(struct pmemstream_region_iterator *iterator){
+	if(iterator != NULL) {
+		return iterator->region;
+	}
+	return NULL;
+}
+
 int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it, struct pmemstream_region *region)
 {
 	while (it->region.offset < it->stream->usable_size) {
