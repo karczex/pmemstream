@@ -75,12 +75,15 @@ int main(int argc, char *argv[])
 
 				auto riter = stream.sut.region_iterator();
 
-				struct pmemstream_region r;
-				int ret = pmemstream_region_iterator_next(riter.get(), &r);
+				int ret = pmemstream_region_iterator_next(riter.get());
 				UT_ASSERTeq(ret, 0);
-				UT_ASSERTeq(region.offset, r.offset);
+
+				struct pmemstream_region region_from_getter =
+					pmemstream_region_iterator_get_region(riter.get());
+
+				UT_ASSERTeq(region.offset, region_from_getter.offset);
 				/* there should be no more regions */
-				ret = pmemstream_region_iterator_next(riter.get(), &r);
+				ret = pmemstream_region_iterator_next(riter.get());
 				UT_ASSERTeq(ret, -1);
 
 				UT_ASSERTeq(stream.sut.region_free(region), 0);

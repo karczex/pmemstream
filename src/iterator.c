@@ -29,7 +29,7 @@ int pmemstream_region_iterator_new(struct pmemstream_region_iterator **iterator,
 	return 0;
 }
 
-int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it, struct pmemstream_region *region)
+int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it)
 {
 	if (!it) {
 		return -1;
@@ -39,7 +39,6 @@ int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it, struc
 		const struct span_base *span_base = span_offset_to_span_ptr(&it->stream->data, it->region.offset);
 
 		if (span_get_type(span_base) == SPAN_REGION) {
-			*region = it->region;
 			it->region.offset += span_get_total_size(span_base);
 			return 0;
 		}
@@ -49,6 +48,11 @@ int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it, struc
 		it->region.offset += span_get_total_size(span_base);
 	}
 	return -1;
+}
+
+struct pmemstream_region pmemstream_region_iterator_get_region(struct pmemstream_region_iterator *it)
+{
+	return it->region;
 }
 
 void pmemstream_region_iterator_delete(struct pmemstream_region_iterator **iterator)
