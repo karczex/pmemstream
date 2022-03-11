@@ -71,6 +71,30 @@ void null_stream_test()
 	pmemstream_region_iterator_delete(&riter);
 }
 
+void two_iterators_to_the_same_region_test(char *path)
+{
+	pmemstream_test_env env = pmemstream_test_make_default(path);
+
+	struct pmemstream_region_iterator *first_iterator = NULL;
+	struct pmemstream_region_iterator *second_iterator = NULL;
+
+	int ret = pmemstream_region_iterator_new(&first_iterator, env.stream);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(first_iterator, NULL);
+
+	ret = pmemstream_region_iterator_new(&second_iterator, env.stream);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(second_iterator, NULL);
+
+	UT_ASSERTne(first_iterator, second_iterator);
+
+	/* Check for segfault */
+	pmemstream_region_iterator_delete(&first_iterator);
+	pmemstream_region_iterator_delete(&second_iterator);
+
+	pmemstream_test_teardown(env);
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc < 2) {
@@ -84,6 +108,7 @@ int main(int argc, char *argv[])
 	valid_input_test(path);
 	invalid_region_test(path);
 	null_stream_test();
+	two_iterators_to_the_same_region_test(path);
 
 	return 0;
 }
