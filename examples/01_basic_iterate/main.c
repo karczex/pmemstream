@@ -44,13 +44,11 @@ int main(int argc, char *argv[])
 		return ret;
 	}
 
-	struct pmemstream_region region;
-
 	/* Iterate over all regions. */
-	while (pmemstream_region_iterator_next(riter, &region) == 0) {
+	while (pmemstream_region_iterator_next(riter) == 0) {
 		struct pmemstream_entry entry;
 		struct pmemstream_entry_iterator *eiter;
-		ret = pmemstream_entry_iterator_new(&eiter, stream, region);
+		ret = pmemstream_entry_iterator_new(&eiter, stream, riter->region);
 		if (ret == -1) {
 			fprintf(stderr, "pmemstream_entry_iterator_new failed\n");
 			return ret;
@@ -60,7 +58,7 @@ int main(int argc, char *argv[])
 		uint64_t last_entry_data;
 		while (pmemstream_entry_iterator_next(eiter, NULL, &entry) == 0) {
 			const struct data_entry *d = pmemstream_entry_data(stream, entry);
-			printf("data entry %lu: %lu in region %lu\n", entry.offset, d->data, region.offset);
+			printf("data entry %lu: %lu in region %lu\n", entry.offset, d->data, riter->region.offset);
 			last_entry_data = d->data;
 		}
 		pmemstream_entry_iterator_delete(&eiter);
@@ -68,7 +66,7 @@ int main(int argc, char *argv[])
 		struct data_entry e;
 		e.data = last_entry_data + 1;
 		struct pmemstream_entry new_entry;
-		ret = pmemstream_append(stream, region, NULL, &e, sizeof(e), &new_entry);
+		ret = pmemstream_append(stream, riter->region, NULL, &e, sizeof(e), &new_entry);
 		if (ret == -1) {
 			fprintf(stderr, "pmemstream_append failed\n");
 			return ret;

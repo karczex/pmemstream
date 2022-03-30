@@ -34,7 +34,6 @@ void print_help(const char *exec_filename)
 int main(int argc, char *argv[])
 {
 	bool values_as_text = false;
-	struct pmemstream_region region;
 
 	if (argc < 2 || argc > 3) {
 		print_help(argv[0]);
@@ -71,16 +70,16 @@ int main(int argc, char *argv[])
 
 	/* Iterate over all regions. */
 	size_t region_id = 0;
-	while (pmemstream_region_iterator_next(riter, &region) == 0) {
+	while (pmemstream_region_iterator_next(riter) == 0) {
 		struct pmemstream_entry entry;
 		struct pmemstream_entry_iterator *eiter;
-		ret = pmemstream_entry_iterator_new(&eiter, stream, region);
+		ret = pmemstream_entry_iterator_new(&eiter, stream, riter->region);
 		if (ret == -1) {
 			fprintf(stderr, "pmemstream_entry_iterator_new failed\n");
 			return ret;
 		}
 		printf("%s region%ld: %ld bytes\n", inner_pointers[0].data(), region_id++,
-		       pmemstream_region_size(stream, region));
+		       pmemstream_region_size(stream, riter->region));
 
 		/* Iterate over all elements in a region and save last entry value. */
 		while (pmemstream_entry_iterator_next(eiter, NULL, &entry) == 0) {

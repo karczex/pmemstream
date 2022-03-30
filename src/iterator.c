@@ -10,6 +10,21 @@
 #include <stdbool.h>
 #include <string.h>
 
+/* XXX: This logic should be removed when suport for multiple regions would be
+ * added. Offset to first allocated region should be taken from allocator */
+static uint64_t get_first_region_offset(struct pmemstream *stream)
+{
+
+	uint64_t first_region_offset = 0;
+	const struct span_base *span_base = span_offset_to_span_ptr(&stream->data, first_region_offset);
+
+	if (span_get_type(span_base) == SPAN_REGION) {
+		return first_region_offset;
+	}
+
+	return INVALID_REGION;
+}
+
 int pmemstream_region_iterator_new(struct pmemstream_region_iterator **iterator, struct pmemstream *stream)
 {
 	if (!stream || !iterator) {
@@ -22,14 +37,15 @@ int pmemstream_region_iterator_new(struct pmemstream_region_iterator **iterator,
 	}
 
 	*(struct pmemstream **)&iter->stream = stream;
-	iter->region.offset = 0;
+
+	iter->region.offset = get_first_region_offset(stream);
 
 	*iterator = iter;
 
 	return 0;
 }
 
-int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it, struct pmemstream_region *region)
+int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it)
 {
 	if (!it) {
 		return -1;
@@ -39,7 +55,6 @@ int pmemstream_region_iterator_next(struct pmemstream_region_iterator *it, struc
 		const struct span_base *span_base = span_offset_to_span_ptr(&it->stream->data, it->region.offset);
 
 		if (span_get_type(span_base) == SPAN_REGION) {
-			*region = it->region;
 			it->region.offset += span_get_total_size(span_base);
 			return 0;
 		}

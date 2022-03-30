@@ -15,6 +15,8 @@
 extern "C" {
 #endif
 
+#define INVALID_REGION UINT64_MAX
+
 struct pmemstream;
 struct pmemstream_tx;
 struct pmemstream_entry_iterator;
@@ -26,6 +28,11 @@ struct pmemstream_region {
 
 struct pmemstream_entry {
 	uint64_t offset;
+};
+
+struct pmemstream_region_iterator {
+	struct pmemstream *const stream;
+	struct pmemstream_region region;
 };
 
 // manages lifecycle of the stream. Can be based on top of a raw pmem2_map
@@ -101,7 +108,7 @@ size_t pmemstream_entry_length(struct pmemstream *stream, struct pmemstream_entr
 
 int pmemstream_region_iterator_new(struct pmemstream_region_iterator **iterator, struct pmemstream *stream);
 
-int pmemstream_region_iterator_next(struct pmemstream_region_iterator *iterator, struct pmemstream_region *region);
+int pmemstream_region_iterator_next(struct pmemstream_region_iterator *iterator);
 
 void pmemstream_region_iterator_delete(struct pmemstream_region_iterator **iterator);
 

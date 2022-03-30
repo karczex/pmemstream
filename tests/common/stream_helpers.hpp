@@ -237,11 +237,10 @@ struct pmemstream_helpers_type {
 	{
 		auto riter = stream.region_iterator();
 
-		struct pmemstream_region region;
-		auto ret = pmemstream_region_iterator_next(riter.get(), &region);
+		auto ret = pmemstream_region_iterator_next(riter.get());
 		UT_ASSERTne(ret, -1);
 
-		return region;
+		return riter->region;
 	}
 
 	struct pmemstream_entry get_last_entry(pmemstream_region region)

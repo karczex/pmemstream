@@ -25,11 +25,6 @@ struct pmemstream_entry_iterator {
 	region_runtime_initialize_fn_type region_runtime_initialize_fn;
 };
 
-struct pmemstream_region_iterator {
-	struct pmemstream *const stream;
-	struct pmemstream_region region;
-};
-
 /* Initializes pmemstream_entry_iterator pointed to by 'iterator'. */
 int entry_iterator_initialize(struct pmemstream_entry_iterator *iterator, struct pmemstream *stream,
 			      struct pmemstream_region region,
