@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <iostream>
 
+#include <initializer_list>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -89,11 +90,12 @@ void slist_foreach(pmemstream_runtime *runtime, singly_linked_list *list, UnaryF
 
 using slist_macro_wrapper = std::function<void(pmemstream_runtime *, singly_linked_list *, uint64_t)>;
 
-std::vector<slist_macro_wrapper> generate_commands(size_t number_of_commands)
+template <typename T>
+std::vector<T> generate_commands(size_t number_of_commands, std::initializer_list<T> f )
 {
 	/* XXX: Add testing of remove */
-	static std::vector<slist_macro_wrapper> possible_cmds{slist_insert_head, slist_insert_tail, slist_remove_head};
-	std::vector<slist_macro_wrapper> out;
+	static std::vector<T> possible_cmds(f.begin(), f.end());
+	std::vector<T> out;
 	for (size_t i = 0; i < number_of_commands; i++) {
 		const size_t samples_number = 1;
 		std::sample(possible_cmds.begin(), possible_cmds.end(), std::back_inserter(out), samples_number,
@@ -137,7 +139,7 @@ void fill(test_config_type test_config)
 
 	slist_runtime_init(&runtime, list);
 
-	const auto commands = generate_commands(number_of_commands);
+	const auto commands = generate_commands<slist_macro_wrapper>(number_of_commands, {slist_insert_head, slist_insert_tail, slist_remove_head});
 	const auto offsets = generate_offsets<node>(number_of_commands);
 
 	for (size_t i = 0; i < number_of_commands; i++) {
