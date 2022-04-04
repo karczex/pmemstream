@@ -5,6 +5,7 @@
 #include "libpmemstream.h"
 
 #include <cstdio>
+#include <filesystem>
 #include <libpmem2.h>
 #include <string>
 #include <vector>
@@ -48,8 +49,17 @@ int main(int argc, char *argv[])
 		values_as_text = true;
 	}
 
+	std::filesystem::path path = argv[1];
+	size_t size = 0;
+	try {
+		size = std::filesystem::file_size(path);
+	} catch (std::filesystem::filesystem_error &e) {
+		fprintf(stderr, "%s\n", e.what());
+		return -1;
+	}
+
 	/* helper function to open a file if exists, or create it with given size otherwise */
-	struct pmem2_map *map = example_map_open(argv[1], EXAMPLE_STREAM_SIZE);
+	struct pmem2_map *map = example_map_open(path.c_str(), size);
 	if (map == NULL) {
 		pmem2_perror("pmem2_map");
 		return -1;
