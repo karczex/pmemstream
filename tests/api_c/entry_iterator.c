@@ -80,6 +80,41 @@ void test_get_last_entry(char *path)
 	free(entries);
 }
 
+void test_get_last_entry_from_full_region(char *path)
+{
+	pmemstream_test_env env = pmemstream_test_make_default(path);
+
+	struct entry_data entry = {.data = 1};
+
+	struct pmemstream_region region;
+	int ret = pmemstream_region_allocate(env.stream, TEST_DEFAULT_REGION_SIZE, &region);
+	UT_ASSERTeq(ret, 0);
+
+	entry.data++;
+	while (pmemstream_append(env.stream, region, NULL, &entry, sizeof(entry), NULL) == 0) {
+		/* NOP */
+	}
+
+	struct pmemstream_entry_iterator *eiter;
+	ret = pmemstream_entry_iterator_new(&eiter, env.stream, region);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(eiter, NULL);
+
+	struct pmemstream_entry last_entry;
+	while (pmemstream_entry_iterator_next(eiter, &region, &last_entry) == 0) {
+		/* NOP */
+	}
+
+	const struct entry_data *last_entry_data = pmemstream_entry_data(env.stream, last_entry);
+	UT_ASSERTeq(last_entry_data->data, entry.data);
+
+	pmemstream_entry_iterator_delete(&eiter);
+	UT_ASSERTeq(eiter, NULL);
+	pmemstream_region_free(env.stream, region);
+
+	pmemstream_test_teardown(env);
+}
+
 void null_iterator_test(char *path)
 {
 	pmemstream_test_env env = pmemstream_test_make_default(path);
@@ -209,6 +244,7 @@ int main(int argc, char *argv[])
 
 	valid_input_test(path);
 	test_get_last_entry(path);
+	test_get_last_entry_from_full_region(path);
 	null_iterator_test(path);
 	invalid_region_test(path);
 	null_stream_test(path);
