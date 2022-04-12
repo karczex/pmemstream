@@ -357,12 +357,13 @@ struct pmemstream_helpers_type {
 		std::vector<struct pmemstream_region> regions;
 		while (true) {
 			struct pmemstream_region region;
-			int ret = pmemstream_region_iterator_next(riter.get());
-			if (ret != 0)
+			if (pmemstream_region_iterator_get(riter.get(), &region) != 0) {
 				break;
-			ret = pmemstream_region_iterator_get(riter.get(), &region);
-			UT_ASSERTeq(ret, 0);
+			}
 			regions.push_back(region);
+			if (pmemstream_region_iterator_next(riter.get()) != 0) {
+				break;
+			}
 		}
 
 		return regions;
@@ -423,10 +424,9 @@ struct pmemstream_helpers_type {
 
 		struct pmemstream_region region;
 		do {
-			UT_ASSERTeq(pmemstream_region_iterator_next(riter.get()), 0);
-			UT_ASSERTeq(pmemstream_region_iterator_get(riter.get(), &region), 0);
-		} while (region.offset != offset);
-
+			pmemstream_region_iterator_get(riter.get(), &region);
+		} while (region.offset != offset && pmemstream_region_iterator_next(riter.get()) == 0);
+		UT_ASSERTeq(region.offset, offset);
 		return stream.region_free(region);
 	}
 
