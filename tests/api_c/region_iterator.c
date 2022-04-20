@@ -25,11 +25,10 @@ void valid_input_test(char *path)
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTne(riter, NULL);
 
-	ret = pmemstream_region_iterator_next(riter, &region);
-	UT_ASSERTeq(ret, 0);
-
+	struct pmemstream_region tmp_region = region;
 	ret = pmemstream_region_iterator_next(riter, &region);
 	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(tmp_region.offset, region.offset);
 
 	pmemstream_region_iterator_delete(&riter);
 	UT_ASSERTeq(riter, NULL);
