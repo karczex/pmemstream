@@ -41,11 +41,11 @@ add_check_whitespace(examples ${CMAKE_CURRENT_SOURCE_DIR}/*.*
 add_example(01_basic_iterate 01_basic_iterate/main.c)
 target_link_libraries(example-01_basic_iterate ${LIBPMEM2_LIBRARIES})
 
-add_example(02_visual_iterator 02_visual_iterator/main.cpp)
-target_link_libraries(example-02_visual_iterator ${LIBPMEM2_LIBRARIES})
-
-add_example(03_reserve_publish 03_reserve_publish/main.cpp)
-target_link_libraries(example-03_reserve_publish ${LIBPMEM2_LIBRARIES})
-
-add_example(04_basic_async 04_basic_async/main.cpp)
-target_link_libraries(example-04_basic_async ${LIBPMEM2_LIBRARIES} ${MINIASYNC_LIBRARIES})
+#add_example(02_visual_iterator 02_visual_iterator/main.cpp)
+#target_link_libraries(example-02_visual_iterator ${LIBPMEM2_LIBRARIES})
+#
+#add_example(03_reserve_publish 03_reserve_publish/main.cpp)
+#target_link_libraries(example-03_reserve_publish ${LIBPMEM2_LIBRARIES})
+#
+#add_example(04_basic_async 04_basic_async/main.cpp)
+#target_link_libraries(example-04_basic_async ${LIBPMEM2_LIBRARIES} ${MINIASYNC_LIBRARIES})
