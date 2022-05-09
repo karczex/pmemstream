@@ -35,3 +35,4 @@ add_check_whitespace(benchmarks ${CMAKE_CURRENT_SOURCE_DIR}/*.*
 # ----------------------------------------------------------------- #
 
 add_benchmark(append append/main.cpp)
+add_benchmark(iterate iterate/main.cpp)
