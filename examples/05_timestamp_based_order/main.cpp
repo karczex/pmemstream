@@ -102,19 +102,23 @@ class entry_iterator {
 	{
 		struct pmemstream_entry_iterator *new_entry_iterator;
 		if (pmemstream_entry_iterator_new(&new_entry_iterator, stream, region) != 0) {
-			std::runtime_error("Cannot create entry iterators");
+			throw std::runtime_error("Cannot create entry iterators");
 		}
 		it = std::shared_ptr<pmemstream_entry_iterator>(new_entry_iterator, [](pmemstream_entry_iterator *eit) {
 			pmemstream_entry_iterator_delete(&eit);
 		});
-		++*this;
+		pmemstream_entry_iterator_seek_first(it.get());
+		if (pmemstream_entry_iterator_is_valid(it.get()) != 0) {
+			throw std::runtime_error("No entries to iterate");
+		}
 	}
 
 	void operator++()
 	{
-		pmemstream_entry entry;
-		if (pmemstream_entry_iterator_next(it.get(), &region, &entry) == 0) {
-			last_entry = (timestamped_entry *)pmemstream_entry_data(stream, entry);
+		pmemstream_entry_iterator_next(it.get());
+		if (pmemstream_entry_iterator_is_valid(it.get()) == 0) {
+			last_entry = (timestamped_entry *)pmemstream_entry_data(
+				stream, pmemstream_entry_iterator_get(it.get()));
 		} else {
 			last_entry = &end;
 		}
