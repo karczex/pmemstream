@@ -8,58 +8,6 @@
 #include <assert.h>
 #include <errno.h>
 
-/* After opening pmemstream, each region_runtime is in one of those 2 states.
- * The only possible state transition is: REGION_RUNTIME_STATE_READ_READY -> REGION_RUNTIME_STATE_WRITE_READY
- */
-enum region_runtime_state {
-	REGION_RUNTIME_STATE_READ_READY, /* reading from the region is safe */
-	REGION_RUNTIME_STATE_WRITE_READY /* reading and writing to the region is safe */
-};
-
-/*
- * It contains all runtime data specific to a region.
- * It is always managed by the pmemstream (user can only obtain a non-owning pointer) and can be created
- * in few different ways:
- * - By explicitly calling pmemstream_region_runtime_initialize() for the first time
- * - By calling pmemstream_append (only if region_runtime does not exist yet)
- * - By advancing an entry iterator past last entry in a region (only if region_runtime does not exist yet)
- */
-struct pmemstream_region_runtime {
-	/* State of the region_runtime. */
-	enum region_runtime_state state;
-
-	/*
-	 * Runtime, needed to perform operations on persistent region.
-	 */
-	struct pmemstream_runtime *data;
-
-	/*
-	 * Points to underlying region.
-	 */
-	struct pmemstream_region region;
-
-	/*
-	 * Offset at which new entries will be appended.
-	 */
-	uint64_t append_offset;
-
-	/*
-	 * All entries which start at offset < committed_offset can be treated as committed and safely read
-	 * from multiple threads.
-	 *
-	 * XXX: committed offset is not reliable in case of concurrent appends to the same region. The reason is
-	 * that it is updated in pmemstream_publish/pmemstream_sync, potentially in different order than append_offset.
-	 *
-	 * To fix this, we might use mechanism similar to timestamp tracking. Alternatively we can batch (transparently
-	 * or via a transaction) appends and then, increase committed_offset on batch commit.
-	 *
-	 * XXX: add test for this: async_append entries of different sizes and call future_poll in different order.
-	 */
-	uint64_t committed_offset;
-
-	/* Protects region initialization step. */
-	pthread_mutex_t region_lock;
-};
 
 /*
  * Holds mapping between region offset and region_runtime.
@@ -187,7 +135,7 @@ uint64_t region_runtime_get_append_offset_acquire(const struct pmemstream_region
 	return __atomic_load_n(&region_runtime->append_offset, __ATOMIC_ACQUIRE);
 }
 
-static uint64_t region_runtime_get_committed_offset_acquire(const struct pmemstream_region_runtime *region_runtime)
+uint64_t region_runtime_get_committed_offset_acquire(const struct pmemstream_region_runtime *region_runtime)
 {
 	assert(region_runtime_get_state_acquire(region_runtime) == REGION_RUNTIME_STATE_WRITE_READY);
 	return __atomic_load_n(&region_runtime->committed_offset, __ATOMIC_ACQUIRE);
@@ -268,14 +216,20 @@ static int region_runtime_iterate_and_initialize_for_write_no_lock(struct pmemst
 		return ret;
 	}
 
-	iterator.offset = first_entry_offset(region);
+	pmemstream_entry_iterator_seek_first(&iterator);
 	while (pmemstream_entry_iterator_is_valid(&iterator) == 0) {
 		pmemstream_entry_iterator_next(&iterator);
 	}
+	
+	uint64_t recovery_offset = PMEMSTREAM_INVALID_OFFSET;
 
-	struct pmemstream_entry entry = pmemstream_entry_iterator_get(&iterator);
-
-	region_runtime_initialize_for_write_no_lock(region_runtime, entry.offset);
+	if(iterator.offset == PMEMSTREAM_INVALID_OFFSET) {
+		recovery_offset = first_entry_offset(iterator.region);
+	} else {
+		recovery_offset = iterator.offset;
+	}	
+	
+	region_runtime_initialize_for_write_no_lock(region_runtime, recovery_offset);
 
 	return 0;
 }

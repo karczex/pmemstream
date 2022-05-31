@@ -134,10 +134,13 @@ int pmemstream_entry_iterator_is_valid(struct pmemstream_entry_iterator *iterato
 	if (!iterator) {
 		return -1;
 	}
-	if (check_entry_consistency(iterator)) {
-		return 0;
+
+	uint64_t committed_offset = __atomic_load_n(&iterator->region_runtime->committed_offset, __ATOMIC_ACQUIRE);
+	if (iterator->offset >= committed_offset) {
+		return -1;
 	}
-	return -1;
+
+	return 0;
 }
 
 #ifndef NDEBUG
@@ -158,7 +161,7 @@ static void pmemstream_entry_iterator_advance(struct pmemstream_entry_iterator *
 	const struct span_base *span_base = span_offset_to_span_ptr(&iterator->stream->data, iterator->offset);
 	iterator->offset += span_get_total_size(span_base);
 
-	assert(pmemstream_entry_iterator_offset_is_inside_region(iterator));
+//	assert(pmemstream_entry_iterator_offset_is_inside_region(iterator));
 }
 
 /* Advances entry iterator by one. Verifies entry integrity and initializes region runtime if end of data is found. */
@@ -168,10 +171,13 @@ void pmemstream_entry_iterator_next(struct pmemstream_entry_iterator *iterator)
 		return;
 	}
 
-	if (check_entry_and_maybe_recover_region(iterator)) {
+	struct pmemstream_entry_iterator tmp_iterator = *iterator;
+	pmemstream_entry_iterator_advance(&tmp_iterator);
+	if(pmemstream_entry_iterator_offset_is_inside_region(&tmp_iterator)){
 		pmemstream_entry_iterator_advance(iterator);
-		return;
+		assert(pmemstream_entry_iterator_offset_is_inside_region(iterator));
 	}
+	check_entry_and_maybe_recover_region(iterator);
 }
 
 void pmemstream_entry_iterator_seek_first(struct pmemstream_entry_iterator *iterator)
@@ -182,7 +188,7 @@ void pmemstream_entry_iterator_seek_first(struct pmemstream_entry_iterator *iter
 	struct pmemstream_entry_iterator tmp_iterator = *iterator;
 
 	tmp_iterator.offset = first_entry_offset(iterator->region);
-	if (!check_entry_consistency(&tmp_iterator)) {
+	if (!check_entry_and_maybe_recover_region(&tmp_iterator)) {
 		return;
 	}
 	iterator->offset = tmp_iterator.offset;

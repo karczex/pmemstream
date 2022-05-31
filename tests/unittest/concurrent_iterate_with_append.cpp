@@ -25,17 +25,23 @@ void concurrent_iterate_verify(pmemstream_test_base &stream, pmemstream_region r
 
 	auto eiter = stream.sut.entry_iterator(region);
 
-	pmemstream_entry_iterator_seek_first(eiter.get());
+	std::vector<std::string> some_data = {"asdf"};
+	stream.helpers.append(region, some_data);
 
+	while(pmemstream_entry_iterator_is_valid(eiter.get()) != 0){
+		std::cout << "d";
+		pmemstream_entry_iterator_seek_first(eiter.get());
+	}
 	/* Loop until all entries are found. */
 	while (result.size() < data.size() + extra_data.size()) {
 		if (pmemstream_entry_iterator_is_valid(eiter.get()) == 0) {
+			std::cout << "a";
 			struct pmemstream_entry entry = pmemstream_entry_iterator_get(eiter.get());
 			result.emplace_back(stream.sut.get_entry(entry));
 		}
 		pmemstream_entry_iterator_next(eiter.get());
 	}
-
+	std::cout << std::endl;
 	UT_ASSERT(std::equal(data.begin(), data.end(), result.begin()));
 	auto is_equal =
 		std::equal(extra_data.begin(), extra_data.end(), result.begin() + static_cast<long long>(data.size()));
@@ -55,10 +61,11 @@ void verify_no_garbage(pmemstream_test_base &&stream, const std::vector<std::str
 
 	if (reopen)
 		stream.reopen();
-
+	std::cout << data.size() << " + " << extra_data.size() << " : ";
 	parallel_exec(concurrency, [&](size_t tid) {
 		if (tid == 0) {
 			/* appender */
+			std::cout << ".";
 			stream.helpers.append(region, extra_data);
 			stream.helpers.verify(region, data, extra_data);
 		} else {
