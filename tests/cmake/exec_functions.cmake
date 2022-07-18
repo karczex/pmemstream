@@ -255,6 +255,10 @@ endfunction()
 function(pmreorder_create_store_log pool name)
 	check_target(${name})
 
+	if(NOT DEFINED TRACER)
+		set(TRACER none)
+	endif()
+
 	if(NOT (${TRACER} STREQUAL none))
 		message(FATAL_ERROR "Pmreorder test must be run without any tracer.")
 	endif()
@@ -300,6 +304,10 @@ endfunction()
 # Optional function arguments are passed as consecutive arguments to
 # the command.
 function(pmreorder_execute expect_success engine conf_file name)
+	if(NOT DEFINED TRACER)
+		set(TRACER none)
+	endif()
+
 	if(NOT (${TRACER} STREQUAL none))
 		message(FATAL_ERROR "Pmreorder test must be run without any tracer.")
 	endif()

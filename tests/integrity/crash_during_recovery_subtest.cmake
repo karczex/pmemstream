@@ -4,7 +4,6 @@
 include(${TESTS_ROOT_DIR}/cmake/exec_functions.cmake)
 set(EXPECT_SUCCESS true)
 
-set(TRACER none)
 set(SUBTEST_FILE ${TEST_FILE}.subtest)
 
 message(STATUS "Running Subtest")
