@@ -171,10 +171,6 @@ if(TESTS_PMREORDER)
 	build_test_ext(NAME append_to_existing_region_pmreorder SRC_FILES integrity/append_to_existing_region_pmreorder.cpp LIBS miniasync)
 	add_test_generic(NAME append_to_existing_region_pmreorder SCRIPT integrity/default_create_fill_check.cmake TRACERS none)
 	add_test_generic(NAME append_to_existing_region_pmreorder CASE crash_during_recovery SCRIPT integrity/crash_during_recovery.cmake TRACERS none)
-
-	build_test_ext(NAME append_to_new_region_pmreorder SRC_FILES integrity/append_to_new_region_pmreorder.cpp LIBS miniasync)
-	add_test_generic(NAME append_to_new_region_pmreorder SCRIPT integrity/default_create_fill_check.cmake TRACERS none)
-	add_test_generic(NAME append_to_new_region_pmreorder CASE crash_during_recovery SCRIPT integrity/crash_during_recovery.cmake TRACERS none)
 endif()
 
 if(GDB AND DEBUG_BUILD)
