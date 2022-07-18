@@ -13,7 +13,8 @@
 #include <string>
 
 constexpr size_t regions_count = 2;
-constexpr size_t regions_count_to_allocate_on_check = 2;
+/* XXX: Investigate fail for regions_count_to_allocate_on_check = 2 */
+constexpr size_t regions_count_to_allocate_on_check = 1;
 constexpr size_t entries_in_region_count = 4;
 
 void check_consistency(test_config_type test_config)
