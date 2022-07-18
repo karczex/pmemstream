@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2022, Intel Corporation */
 
+/* Pmreorder test for recovery after crash, where user continue appending data to existing regions */
+
 #include "append_pmreorder.hpp"
 #include "libpmemstream_internal.h"
 #include "stream_helpers.hpp"
 #include "unittest.hpp"
 
-#include <filesystem>
 #include <iostream>
 #include <string>
-#include <vector>
 
 constexpr size_t regions_count = 2;
 constexpr size_t entries_in_region_count = 4;
@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
 	struct test_config_type test_config;
 	std::string mode = argv[1];
 	test_config.filename = argv[2];
-	/* requested region_size in this test is of "block_size", but it's actually double that, because of aligning */
 	test_config.stream_size =
 		STREAM_METADATA_SIZE + 2 * TEST_DEFAULT_BLOCK_SIZE * regions_count * entries_in_region_count * 10;
 
